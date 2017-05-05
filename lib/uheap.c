@@ -39,7 +39,6 @@ void* malloc(uint32 size)
     {
         Init_User_Heap();
     }
-    //cprintf("0: %d\n",user_heap[0]);
     
     size = ROUNDUP(size, PAGE_SIZE);
     size /= PAGE_SIZE;
@@ -53,7 +52,6 @@ void* malloc(uint32 size)
             {
                 user_heap[j] = j - (i+size);
             }
-            //cprintf("malloc: %u, Answer: %u\n",va_frame(i), USER_HEAP_START + 2*1024*1024);
             return (void *)va_frame(i);
         }
     }
@@ -62,10 +60,31 @@ void* malloc(uint32 size)
 
 void* smalloc(char *sharedVarName, uint32 size, uint8 isWritable)
 {
-	//TODO: [PROJECT 2017 - [6] Shared Variables: Creation] smalloc() [User Side]
-	// Write your code here, remove the panic and write your code
-	panic("smalloc() is not implemented yet...!!");
-
+    if(!HEAP_INIT)
+    {
+        Init_User_Heap();
+    }
+    size = ROUNDUP(size, PAGE_SIZE);
+    size /= PAGE_SIZE;
+    for(int i = 0; i < total_frames; i++)
+    {
+        if(user_heap[i] >= (int)size)
+        {
+            
+            int success = sys_createSharedObject(sharedVarName, size*PAGE_SIZE, isWritable, (void *)va_frame(i));
+            if(success < 0)
+            {
+                return NULL;
+            }
+            for(int j = i+size-1; j >= i; j--)
+            {
+                user_heap[j] = j - (i+size);
+            }
+            return (void *)va_frame(i);
+        }
+    }
+    return NULL;
+    
 	// Steps:
 	//	1) Implement FIRST FIT strategy to search the heap for suitable space
 	//		to the required allocation size (space should be on 4 KB BOUNDARY)
@@ -75,22 +94,39 @@ void* smalloc(char *sharedVarName, uint32 size, uint8 isWritable)
 	//		sys_createSharedObject(): if succeed, it returns the ID of the created variable. Else, it returns -ve
 	//	4) If the Kernel successfully creates the shared variable, return its virtual address
 	//	   Else, return NULL
-
-	//This function should find the space of the required range
-	// ******** ON 4KB BOUNDARY ******************* //
-
-	//Use sys_isUHeapPlacementStrategyFIRSTFIT() to check the current strategy
-
-	//change this "return" according to your answer
-	return 0;
 }
 
 void* sget(int32 ownerEnvID, char *sharedVarName)
 {
-	//TODO: [PROJECT 2017 - [6] Shared Variables: Get] sget() [User Side]
-	// Write your code here, remove the panic and write your code
-	//panic("sget() is not implemented yet...!!");
-
+    uint32 size = sys_getSizeOfSharedObject(ownerEnvID, sharedVarName);
+    if(size == E_SHARED_MEM_NOT_EXISTS)
+    {
+        return NULL;
+    }
+    if(!HEAP_INIT)
+    {
+        Init_User_Heap();
+    }
+    size = ROUNDUP(size, PAGE_SIZE);
+    size /= PAGE_SIZE;
+    for(int i = 0; i < total_frames; i++)
+    {
+        if(user_heap[i] >= (int)size)
+        {
+            
+            int success = sys_getSharedObject(ownerEnvID, sharedVarName, (void *)va_frame(i));
+            if(success < 0)
+            {
+                return NULL;
+            }
+            for(int j = i+size-1; j >= i; j--)
+            {
+                user_heap[j] = j - (i+size);
+            }
+            return (void *)va_frame(i);
+        }
+    }
+    return NULL;
 	// Steps:
 	//	1) Get the size of the shared variable (use sys_getSizeOfSharedObject())
 	//	2) If not exists, return NULL

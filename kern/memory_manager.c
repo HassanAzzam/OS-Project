@@ -425,6 +425,8 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 		// When allocating new frame, if there's no free frame, then you should:
 		//	1-	If any process has exited (those with status ENV_EXIT), then remove one or more of these exited processes from the main memory
 		//	2-	otherwise, free at least 1 frame from the user working set by applying the FIFO algorithm
+        struct Env* env = NULL;
+        sched_remove_exit(env);
 
 	}
 
