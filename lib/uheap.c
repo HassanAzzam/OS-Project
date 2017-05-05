@@ -39,13 +39,13 @@ void* malloc(uint32 size)
     {
         Init_User_Heap();
     }
-    
+    size = ROUNDUP(size, PAGE_SIZE);
     size /= PAGE_SIZE;
     for(int i = 0; i < total_frames; i++)
     {
         if(user_heap[i] >= size)
         {
-            sys_allocateMem(va_frame(i), size);
+            sys_allocateMem(va_frame(i), size*PAGE_SIZE);
             for(int j = i+size-1; j >= i; j--)
             {
                 user_heap[j] = j - (i+size);
@@ -124,7 +124,7 @@ void free(void* virtual_address)
     int start = frame_no_start((uint32)virtual_address);
     int end = start-1 + user_heap[start]*-1;
     
-    sys_freeMem((uint32)virtual_address, end - start + 1);
+    sys_freeMem((uint32)virtual_address, (end - start + 1)*PAGE_SIZE);
     if(end == total_frames - 1 || user_heap[end+1] < 0 )
     {
         for(int i=end; i>=start; i--)
