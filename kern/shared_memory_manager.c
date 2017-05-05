@@ -170,7 +170,7 @@ int createSharedObject(int32 ownerID, char* shareName, uint32 size, uint8 isWrit
     {
         struct Frame_Info *frm = NULL;
         allocate_frame(&frm);
-        map_frame(myenv->env_page_directory, frm, (void *)((uint32)virtual_address + i*PAGE_SIZE), PERM_WRITEABLE);
+        map_frame(myenv->env_page_directory, frm, (void *)((uint32)virtual_address + i*PAGE_SIZE), PERM_WRITEABLE | PERM_USER);
         add_frame_to_storage(object->framesStorage, frm, i);
     }
     
@@ -212,7 +212,7 @@ int getSharedObject(int32 ownerID, char* shareName, void* virtual_address)
     for(int i=0; i<1024; i++)
     {
         struct Frame_Info *frm = get_frame_from_storage(shares[id].framesStorage,i);
-        map_frame(myenv->env_page_directory, frm, virtual_address, PERM_WRITEABLE & shares[id].isWritable);
+        map_frame(myenv->env_page_directory, frm, virtual_address, shares[id].isWritable | PERM_USER);
         frm->references++;
     }
     
