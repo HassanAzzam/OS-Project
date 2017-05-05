@@ -209,10 +209,10 @@ int getSharedObject(int32 ownerID, char* shareName, void* virtual_address)
     }
     
     struct Env* myenv = curenv;
-    for(int i=0; i<1024; i++)
+    for(uint32 i=0; i<shares[id].size/PAGE_SIZE; i++)
     {
         struct Frame_Info *frm = get_frame_from_storage(shares[id].framesStorage,i);
-        map_frame(myenv->env_page_directory, frm, virtual_address, shares[id].isWritable | PERM_USER);
+        map_frame(myenv->env_page_directory, frm, (void *)((uint32)virtual_address + i*PAGE_SIZE), shares[id].isWritable | PERM_USER);
         frm->references++;
     }
     
