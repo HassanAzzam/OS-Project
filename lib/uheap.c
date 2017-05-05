@@ -24,7 +24,7 @@
 #define va_frame(x) USER_HEAP_START + x*PAGE_SIZE
 int HEAP_INIT = 0;
 
-uint32 user_heap[total_frames];
+int user_heap[total_frames];
 void Init_User_Heap(){
     HEAP_INIT = 1;
     for(int i = 0; i < total_frames; i++)
@@ -39,17 +39,21 @@ void* malloc(uint32 size)
     {
         Init_User_Heap();
     }
+    //cprintf("0: %d\n",user_heap[0]);
+    
     size = ROUNDUP(size, PAGE_SIZE);
     size /= PAGE_SIZE;
     for(int i = 0; i < total_frames; i++)
     {
-        if(user_heap[i] >= size)
+        if(user_heap[i] >= (int)size)
         {
+            
             sys_allocateMem(va_frame(i), size*PAGE_SIZE);
             for(int j = i+size-1; j >= i; j--)
             {
                 user_heap[j] = j - (i+size);
             }
+            //cprintf("malloc: %u, Answer: %u\n",va_frame(i), USER_HEAP_START + 2*1024*1024);
             return (void *)va_frame(i);
         }
     }
