@@ -430,10 +430,7 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 		//	2-	otherwise, free at least 1 frame from the user working set by applying the FIFO algorithm
         /*struct Env* env = dequeue(&env_exit_queue);
         if(env == NULL) {
-            *ptr_frame_info = LIST_FIRST(&FIFO_frames);
-            LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
-            free_frame(ptr_frame_info);
-            *ptr_frame_info = LIST_FIRST(&free_frame_list);
+         
             //panic("NO FREE FRAMES & NO ENV_EXIT");
         }
         while(env != NULL)
@@ -441,7 +438,11 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
             sched_remove_exit(env);
             env = dequeue(&env_exit_queue);
         }*/
-        
+        *ptr_frame_info = LIST_FIRST(&FIFO_frames);
+        LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
+        free_frame(*ptr_frame_info);
+        *ptr_frame_info = LIST_FIRST(&free_frame_list);
+        //panic("FREE RAM!");
 	}
 
     LIST_REMOVE(&free_frame_list,*ptr_frame_info);
