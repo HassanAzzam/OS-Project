@@ -204,8 +204,8 @@ void sfree(void* virtual_address)
 {
 	//TODO: [PROJECT 2017 - BONUS4] Free Shared Variable [User Side]
 	// Write your code here, remove the panic and write your code
-	panic("sfree() is not implemented yet...!!");
-
+    
+    
 	//	1) you should find the ID of the shared variable at the given address
 	//	2) you need to call sys_freeSharedObject()
 

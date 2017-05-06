@@ -414,6 +414,9 @@ void initialize_frame_info(struct Frame_Info *ptr_frame_info)
 extern struct Env_list env_exit_queue;
 extern void env_free(struct Env *e);
 
+struct Linked_List FIFO_frames;
+uint32 FIFO_index = 0;
+
 int allocate_frame(struct Frame_Info **ptr_frame_info)
 {
 	*ptr_frame_info = LIST_FIRST(&free_frame_list);
@@ -425,12 +428,24 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 		// When allocating new frame, if there's no free frame, then you should:
 		//	1-	If any process has exited (those with status ENV_EXIT), then remove one or more of these exited processes from the main memory
 		//	2-	otherwise, free at least 1 frame from the user working set by applying the FIFO algorithm
-        struct Env* env = NULL;
-        sched_remove_exit(env);
-
+        /*struct Env* env = dequeue(&env_exit_queue);
+        if(env == NULL) {
+            *ptr_frame_info = LIST_FIRST(&FIFO_frames);
+            LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
+            free_frame(ptr_frame_info);
+            *ptr_frame_info = LIST_FIRST(&free_frame_list);
+            //panic("NO FREE FRAMES & NO ENV_EXIT");
+        }
+        while(env != NULL)
+        {
+            sched_remove_exit(env);
+            env = dequeue(&env_exit_queue);
+        }*/
+        
 	}
 
-	LIST_REMOVE(&free_frame_list,*ptr_frame_info);
+    LIST_REMOVE(&free_frame_list,*ptr_frame_info);
+    //LIST_INSERT_TAIL(&FIFO_frames, ptr_frame_info);
 
 	/******************* PAGE BUFFERING CODE *******************
 	 ***********************************************************/
