@@ -422,29 +422,37 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 	*ptr_frame_info = LIST_FIRST(&free_frame_list);
 	int c = 0;
 	if (*ptr_frame_info == NULL)
-	{
+    {
 		//TODO: [PROJECT 2017 - BONUS7] Free RAM when it's FULL
 		//panic("ERROR: Kernel run out of memory... allocate_frame cannot find a free frame.\n");
 		// When allocating new frame, if there's no free frame, then you should:
 		//	1-	If any process has exited (those with status ENV_EXIT), then remove one or more of these exited processes from the main memory
 		//	2-	otherwise, free at least 1 frame from the user working set by applying the FIFO algorithm
-        /*struct Env* env = dequeue(&env_exit_queue);
+        struct Env* env = LIST_FIRST(&env_exit_queue);
         if(env == NULL) {
-         
-            //panic("NO FREE FRAMES & NO ENV_EXIT");
+            panic(">>>>>>>> FIFO should be applied");
+            *ptr_frame_info = LIST_FIRST(&FIFO_frames);
+            LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
+            free_frame(*ptr_frame_info);
         }
         while(env != NULL)
         {
-            sched_remove_exit(env);
-            env = dequeue(&env_exit_queue);
-        }*/
-        *ptr_frame_info = LIST_FIRST(&FIFO_frames);
-        LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
-        free_frame(*ptr_frame_info);
-        *ptr_frame_info = LIST_FIRST(&free_frame_list);
+            LIST_REMOVE(&env_exit_queue, env);
+            env_free(env);
+            env = LIST_FIRST(&env_exit_queue);
+        }
+        cprintf(">>>>>> Free_List_Size: %u\n", LIST_SIZE(&free_frame_list));
+        allocate_frame(ptr_frame_info);
+        cprintf(">>>>>> Frame: %u\n", ptr_frame_info);
+        if(LIST_FIRST(&free_frame_list) != NULL)
+        cprintf(">>>>>> HEAD NOT NULL");
+        //if(ptr_frame_info == NULL)
+        //panic("");
         //panic("FREE RAM!");
+        return 0;
 	}
-
+    //panic(">>>>>>>> Free RAM 1");
+    
     LIST_REMOVE(&free_frame_list,*ptr_frame_info);
     //LIST_INSERT_TAIL(&FIFO_frames, ptr_frame_info);
 
@@ -459,7 +467,7 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 
 	/**********************************************************
 	 ***********************************************************/
-
+    //panic(">>>>>>>>  Free RAM 2");
 	initialize_frame_info(*ptr_frame_info);
 
 	return 0;
