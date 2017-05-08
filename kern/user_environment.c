@@ -780,34 +780,28 @@ void env_free(struct Env *e)
 	__remove_pws_user_pages(e);
 
     
-    for(uint32 i=0;i<e->page_WS_max_size;i++)
-    {
-        // [1] Free the pages in the PAGE working set from the main memory
-        if(env_page_ws_is_entry_empty(e,i)==0)
-        {
-            unmap_frame(e->env_page_directory,(void*)env_page_ws_get_virtual_address(e,i));
-            env_page_ws_clear_entry(e,i);
+    for(int i = 0; i < USER_TOP; i+=PAGE_SIZE)
+        unmap_frame(e->env_page_directory, (void*)i);
+    
+    kfree(e->ptr_pageWorkingSet);
+    
+    for(int i = 0; i < USER_TOP; i+=PAGE_SIZE){
+        uint32* page_table = NULL;
+        get_page_table(e->env_page_directory, (void*)i, &page_table);
+        
+        if(page_table != NULL){
+            struct Frame_Info *frm = to_frame_info(kheap_physical_address((uint32)page_table));
+            //frm->environment = NULL;
+            //frm->references = 0;
+            free_frame(frm);
+            e->env_page_directory[PDX(i)] = 0;
         }
     }
     
-    kfree((void*)e->ptr_pageWorkingSet);
-    
-    for(uint32 i = 0; i < PDX(USER_TOP); i+=PAGE_SIZE){
-        uint32 address = (i<<22);
-        uint32 *table_ptr;
-        if(get_page_table(e->env_page_directory,(void*)address,&table_ptr)!= TABLE_NOT_EXIST)
-        {
-            uint32 * ptr_pgdir = e->env_page_directory;
-            ptr_pgdir[PDX(address)] = 0 ;
-            unmap_frame(e->env_page_directory,(void*)table_ptr);
-            
-        }
-    }
-    
-    kfree((void*)e->env_page_directory);
+    kfree(e->env_page_directory);
     
     tlbflush();
-
+    
     //YOUR CODE ENDS HERE --------------------------------------------
 
 	//Don't change these lines:

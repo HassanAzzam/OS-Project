@@ -413,9 +413,7 @@ void initialize_frame_info(struct Frame_Info *ptr_frame_info)
 
 extern struct Env_list env_exit_queue;
 extern void env_free(struct Env *e);
-
 struct Linked_List FIFO_frames;
-uint32 FIFO_index = 0;
 
 int allocate_frame(struct Frame_Info **ptr_frame_info)
 {
@@ -430,9 +428,7 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
 		//	2-	otherwise, free at least 1 frame from the user working set by applying the FIFO algorithm
         struct Env* env = LIST_FIRST(&env_exit_queue);
         if(env == NULL) {
-            panic(">>>>>>>> FIFO should be applied");
             *ptr_frame_info = LIST_FIRST(&FIFO_frames);
-            LIST_REMOVE(&FIFO_frames,*ptr_frame_info);
             free_frame(*ptr_frame_info);
         }
         while(env != NULL)
@@ -441,20 +437,12 @@ int allocate_frame(struct Frame_Info **ptr_frame_info)
             env_free(env);
             env = LIST_FIRST(&env_exit_queue);
         }
-        cprintf(">>>>>> Free_List_Size: %u\n", LIST_SIZE(&free_frame_list));
         allocate_frame(ptr_frame_info);
-        cprintf(">>>>>> Frame: %u\n", ptr_frame_info);
-        if(LIST_FIRST(&free_frame_list) != NULL)
-        cprintf(">>>>>> HEAD NOT NULL");
-        //if(ptr_frame_info == NULL)
-        //panic("");
-        //panic("FREE RAM!");
         return 0;
 	}
-    //panic(">>>>>>>> Free RAM 1");
     
     LIST_REMOVE(&free_frame_list,*ptr_frame_info);
-    //LIST_INSERT_TAIL(&FIFO_frames, ptr_frame_info);
+    LIST_INSERT_TAIL(&FIFO_frames, *ptr_frame_info);
 
 	/******************* PAGE BUFFERING CODE *******************
 	 ***********************************************************/
@@ -484,7 +472,8 @@ void free_frame(struct Frame_Info *ptr_frame_info)
 	/*=============================================================================*/
 
 	// Fill this function in
-	LIST_INSERT_HEAD(&free_frame_list, ptr_frame_info);
+    LIST_INSERT_HEAD(&free_frame_list, ptr_frame_info);
+    LIST_REMOVE(&FIFO_frames, ptr_frame_info);
 	//LOG_STATMENT(cprintf("FN # %d FREED",to_frame_number(ptr_frame_info)));
 
 
